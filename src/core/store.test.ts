@@ -23,6 +23,21 @@ describe('Task Store', () => {
     expect(task.id).toBe(1);
   });
 
+  it('rejects empty title', () => {
+    expect(() => addTask('', 'high')).toThrow('INVALID_TITLE');
+    expect(() => addTask('   ', 'high')).toThrow('INVALID_TITLE');
+  });
+
+  it('normalizes invalid priority to medium', () => {
+    const task = addTask('Task with invalid priority', 'INVALID');
+    expect(task.priority).toBe('medium');
+  });
+
+  it('accepts case-insensitive valid priority', () => {
+    const task = addTask('Task with uppercase priority', 'HIGH');
+    expect(task.priority).toBe('high');
+  });
+
   it('lists tasks', () => {
     addTask('Task 1', 'low');
     addTask('Task 2', 'high');
