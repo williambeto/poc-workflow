@@ -43,3 +43,8 @@ Requirement → Spec → Tech Plan → PR Breakdown → Implementation → Valid
 ## CI
 
 Validations run on push via `.github/workflows/validate.yml`.
+
+## Prova de execução
+
+- Documento formal: `PROVA.md`
+- Relatório detalhado da POC: `poc-report.md`
