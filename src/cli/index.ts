@@ -22,10 +22,15 @@ program
 program
   .command('list')
   .description('List all tasks')
-  .action(() => {
-    const tasks = listTasks();
+  .option('-s, --sort <direction>', 'Sort order: asc or desc', 'desc')
+  .action((options) => {
+    const direction = (['asc', 'desc'].includes(options.sort?.toLowerCase()))
+      ? options.sort.toLowerCase()
+      : 'desc';
+    const { tasks, parseError } = listTasks(direction);
     if (tasks.length === 0) {
       console.log('No tasks found.');
+      process.exit(parseError ? 1 : 0);
       return;
     }
     tasks.forEach((t) => {
