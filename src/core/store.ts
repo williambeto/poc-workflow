@@ -29,12 +29,25 @@ function saveStore(store: TaskStore): void {
   writeFileSync(DATA_FILE, JSON.stringify(store, null, 2));
 }
 
+function normalizePriority(priority: string = 'medium'): Task['priority'] {
+  const normalized = (priority || 'medium').toLowerCase();
+  if (normalized === 'low' || normalized === 'medium' || normalized === 'high') {
+    return normalized;
+  }
+  return 'medium';
+}
+
 export function addTask(title: string, priority: string = 'medium'): Task {
+  const trimmedTitle = title.trim();
+  if (!trimmedTitle) {
+    throw new Error('INVALID_TITLE');
+  }
+
   const { store } = loadStore();
   const task: Task = {
     id: store.nextId,
-    title,
-    priority: priority as Task['priority'],
+    title: trimmedTitle,
+    priority: normalizePriority(priority),
     status: 'pending',
     createdAt: new Date().toISOString(),
   };

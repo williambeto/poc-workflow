@@ -104,4 +104,32 @@ describe('CLI list command integration', () => {
 
     expect(descOut).toBe(defaultOut);
   });
+
+  it('rejects empty title with exit code 1', () => {
+    const result = runCli(['add', '']);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Task title cannot be empty.');
+  });
+
+  it('rejects whitespace-only title with exit code 1', () => {
+    const result = runCli(['add', '   ']);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Task title cannot be empty.');
+  });
+
+  it('falls back invalid priority to medium', () => {
+    const addResult = runCli(['add', 'Task invalid priority', '--priority', 'INVALID']);
+    expect(addResult.status).toBe(0);
+
+    const listResult = runCli(['list']);
+    expect(listResult.stdout).toContain('[medium] Task invalid priority');
+  });
+
+  it('accepts uppercase valid priority', () => {
+    const addResult = runCli(['add', 'Task uppercase priority', '--priority', 'HIGH']);
+    expect(addResult.status).toBe(0);
+
+    const listResult = runCli(['list']);
+    expect(listResult.stdout).toContain('[high] Task uppercase priority');
+  });
 });

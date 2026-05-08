@@ -15,8 +15,16 @@ program
   .argument('<title>', 'Task title')
   .option('-p, --priority <level>', 'Priority: low, medium, high', 'medium')
   .action((title: string, options) => {
-    const task = addTask(title, options.priority);
-    console.log(`Added task #${task.id}: "${task.title}" [${task.priority}]`);
+    try {
+      const task = addTask(title, options.priority);
+      console.log(`Added task #${task.id}: "${task.title}" [${task.priority}]`);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'INVALID_TITLE') {
+        console.error('Task title cannot be empty.');
+        process.exit(1);
+      }
+      throw error;
+    }
   });
 
 program
