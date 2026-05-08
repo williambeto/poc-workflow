@@ -23,14 +23,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate Markdown
-        run: npm run validate:md
+      - name: Type check
+        run: npm run lint
 
-      - name: Validate JSON
-        run: npm run validate:json
-
-      - name: Validate repository structure
-        run: npm run validate:structure
-
-      - name: Run all validations
-        run: npm run validate
+      - name: Run tests
+        run: npm run test
