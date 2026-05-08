@@ -207,9 +207,23 @@ then the output appears within 1 second.
 
 | # | Pergunta | Estado |
 | -- | -------- | ------ |
-| 1 | O que acontece se `data/tasks.json` contiver um array de objetos que não seguem o schema? | **Aberto** — Decidir se o `list` deve falhar com erro ou retornar empty state |
+| 1 | O que acontece com `--sort` valor inválido? | **Aberto** — Ignorar e usar padrão (desc), ou falhar com erro? |
 | 2 | A flag `--sort` deve ser case-insensitive? | **Decidido** — Sim, aceitar `ASC`, `DESC`, `asc`, `desc` |
-| 3 | Qual deve ser o comportamento se o arquivo JSON estiver malformado? | **Decidido** — Exibir `No tasks found.` e exit code 1 |
+| 3 | JSON malformado (erro de sintaxe) | **Decidido** — Exibir `No tasks found.` e exit code 1 |
+| 4 | Objetos fora do schema (ex: falta `priority`) | **Decidido** — O `add` garante schema válido; o `list` ignora objetos inválidos silenciosamente |
+
+## Additional acceptance criteria
+
+### AC-10 — Invalid sort value
+
+Given the user runs `tasks list --sort foo`,
+then the system falls back to the default sort (desc: high → low, pending → done) without displaying an error.
+
+### AC-11 — Case-insensitive sort flag
+
+Given tasks with mixed priorities exist,
+when the user runs `tasks list --sort ASC`,
+then the output is identical to `tasks list --sort asc`.
 
 ## Final recommendation
 
