@@ -1,0 +1,26 @@
+{
+  "name": "poc-workflow",
+  "version": "0.1.0",
+  "description": "CLI task tracker — POC to prove codex-repo-starter workflow",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "tasks": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "lint": "tsc --noEmit",
+    "validate": "npm run lint && npm run test"
+  },
+  "dependencies": {
+    "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/jest": "^29.0.0",
+    "jest": "^30.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.7.0"
+  }
+}
