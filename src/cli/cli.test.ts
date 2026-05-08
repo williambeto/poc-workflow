@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { spawnSync } from 'child_process';
-import { existsSync, rmSync } from 'fs';
+import { existsSync, rmSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
 
 const CLI = join(process.cwd(), 'dist', 'cli', 'index.js');
@@ -8,25 +8,32 @@ const DATA_DIR = join(process.cwd(), 'data');
 
 function runCli(args: string[]): { stdout: string; stderr: string; status: number } {
   const result = spawnSync('node', [CLI, ...args], {
-    cwd: process.cwd(),
     encoding: 'utf-8',
+    timeout: 5000,
   });
   return {
-    stdout: result.stdout?.trim() ?? '',
-    stderr: result.stderr?.trim() ?? '',
+    stdout: (result.stdout ?? '').trim(),
+    stderr: (result.stderr ?? '').trim(),
     status: result.status ?? 1,
   };
 }
 
-function resetData() {
-  if (existsSync(DATA_DIR)) {
-    rmSync(DATA_DIR, { recursive: true });
+function addTask(id: number, title: string, priority: string, status: string): void {
+  mkdirSync(DATA_DIR, { recursive: true });
+  const filePath = join(DATA_DIR, 'tasks.json');
+  let store = { tasks: [] as object[], nextId: 1 };
+  if (existsSync(filePath)) {
+    try { store = JSON.parse(readFileSync(filePath, 'utf-8')) as typeof store; } catch { /* ignore */ }
   }
+  store.tasks.push({ id, title, priority, status, createdAt: new Date().toISOString() });
+  store.nextId = Math.max(store.nextId, id + 1);
+  writeFileSync(filePath, JSON.stringify(store));
 }
 
 describe('CLI list command integration', () => {
-  beforeEach(() => { resetData(); });
-  afterEach(() => { resetData(); });
+  beforeEach(() => {
+    if (existsSync(DATA_DIR)) rmSync(DATA_DIR, { recursive: true });
+  });
 
   it('displays "No tasks found." when store is empty (AC-01)', () => {
     const result = runCli(['list']);
@@ -35,21 +42,22 @@ describe('CLI list command integration', () => {
   });
 
   it('displays tasks sorted by priority high > medium > low (AC-02)', () => {
-    runCli(['add', 'Low task', '--priority', 'low']);
-    runCli(['add', 'High task', '--priority', 'high']);
-    runCli(['add', 'Med task', '--priority', 'medium']);
+    addTask(1, 'Low task', 'low', 'pending');
+    addTask(2, 'High task', 'high', 'pending');
+    addTask(3, 'Med task', 'medium', 'pending');
 
     const result = runCli(['list']);
     const lines = result.stdout.split('\n');
-
     expect(lines[0]).toContain('[high]');
     expect(lines[1]).toContain('[medium]');
     expect(lines[2]).toContain('[low]');
   });
 
   it('displays formatted output with priority and marker (AC-06, AC-07)', () => {
-    runCli(['add', 'Pending high task', '--priority', 'high']);
-    runCli(['done', '1']);
+    addTask(1, 'Pending high task', 'high', 'pending');
+
+    const addResult = runCli(['done', '1']);
+    expect(addResult.status).toBe(0);
 
     const result = runCli(['list']);
     const line = result.stdout.split('\n')[0];
@@ -59,8 +67,8 @@ describe('CLI list command integration', () => {
   });
 
   it('--sort asc reverses priority order (AC-05)', () => {
-    runCli(['add', 'High', '--priority', 'high']);
-    runCli(['add', 'Low', '--priority', 'low']);
+    addTask(1, 'High', 'high', 'pending');
+    addTask(2, 'Low', 'low', 'pending');
 
     const result = runCli(['list', '--sort', 'asc']);
     const lines = result.stdout.split('\n');
@@ -69,8 +77,8 @@ describe('CLI list command integration', () => {
   });
 
   it('--sort ASC is case-insensitive (AC-11)', () => {
-    runCli(['add', 'High', '--priority', 'high']);
-    runCli(['add', 'Low', '--priority', 'low']);
+    addTask(1, 'High', 'high', 'pending');
+    addTask(2, 'Low', 'low', 'pending');
 
     const resultAsc = runCli(['list', '--sort', 'asc']);
     const resultASC = runCli(['list', '--sort', 'ASC']);
@@ -79,8 +87,8 @@ describe('CLI list command integration', () => {
   });
 
   it('--sort INVALID falls back to default without error (AC-10)', () => {
-    runCli(['add', 'High', '--priority', 'high']);
-    runCli(['add', 'Low', '--priority', 'low']);
+    addTask(1, 'High', 'high', 'pending');
+    addTask(2, 'Low', 'low', 'pending');
 
     const result = runCli(['list', '--sort', 'INVALID']);
     expect(result.status).toBe(0);
@@ -88,8 +96,8 @@ describe('CLI list command integration', () => {
   });
 
   it('--sort desc equals default sort (AC-08)', () => {
-    runCli(['add', 'High', '--priority', 'high']);
-    runCli(['add', 'Low', '--priority', 'low']);
+    addTask(1, 'High', 'high', 'pending');
+    addTask(2, 'Low', 'low', 'pending');
 
     const defaultOut = runCli(['list']).stdout;
     const descOut = runCli(['list', '--sort', 'desc']).stdout;
