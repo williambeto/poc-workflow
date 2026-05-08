@@ -26,7 +26,7 @@ describe('Task Store', () => {
   it('lists tasks', () => {
     addTask('Task 1', 'low');
     addTask('Task 2', 'high');
-    const tasks = listTasks();
+    const { tasks } = listTasks();
     expect(tasks).toHaveLength(2);
   });
 
@@ -41,7 +41,7 @@ describe('Task Store', () => {
     addTask('Task to remove', 'low');
     const removed = removeTask(1);
     expect(removed).toBe(true);
-    expect(listTasks()).toHaveLength(0);
+    expect(listTasks().tasks).toHaveLength(0);
   });
 
   it('returns null for doneTask with invalid id', () => {
@@ -87,7 +87,7 @@ describe('sortTasks', () => {
     createTask(1, 'low', 'pending');
     createTask(2, 'high', 'pending');
     createTask(3, 'medium', 'pending');
-    const tasks = listTasks();
+    const { tasks } = listTasks();
     expect(tasks[0].priority).toBe('high');
     expect(tasks[1].priority).toBe('medium');
     expect(tasks[2].priority).toBe('low');
@@ -97,7 +97,7 @@ describe('sortTasks', () => {
     resetStore();
     createTask(1, 'high', 'done');
     createTask(2, 'high', 'pending');
-    const tasks = listTasks();
+    const { tasks } = listTasks();
     expect(tasks[0].status).toBe('pending');
     expect(tasks[1].status).toBe('done');
   });
@@ -107,7 +107,7 @@ describe('sortTasks', () => {
     createTask(5, 'high', 'pending');
     createTask(2, 'high', 'pending');
     createTask(8, 'high', 'pending');
-    const tasks = listTasks();
+    const { tasks } = listTasks();
     expect(tasks[0].id).toBe(2);
     expect(tasks[1].id).toBe(5);
     expect(tasks[2].id).toBe(8);
@@ -117,17 +117,17 @@ describe('sortTasks', () => {
     resetStore();
     createTask(1, 'high', 'pending');
     createTask(2, 'low', 'pending');
-    const tasks = listTasks('asc');
-    expect(tasks[0].priority).toBe('low');
-    expect(tasks[1].priority).toBe('high');
+    const { tasks: tasksAsc } = listTasks('asc');
+    expect(tasksAsc[0].priority).toBe('low');
+    expect(tasksAsc[1].priority).toBe('high');
   });
 
   it('invalid sort value falls back to desc (AC-10)', () => {
     resetStore();
     createTask(1, 'high', 'pending');
     createTask(2, 'low', 'pending');
-    const tasks = listTasks('invalid' as 'asc' | 'desc');
-    expect(tasks[0].priority).toBe('high');
-    expect(tasks[1].priority).toBe('low');
+    const { tasks: tasksInvalid } = listTasks('invalid' as 'asc' | 'desc');
+    expect(tasksInvalid[0].priority).toBe('high');
+    expect(tasksInvalid[1].priority).toBe('low');
   });
 });

@@ -4,11 +4,21 @@ import type { Task, TaskStore } from '../types/task.js';
 
 const DATA_FILE = join(process.cwd(), 'data', 'tasks.json');
 
-function loadStore(): TaskStore {
+interface LoadResult {
+  store: TaskStore;
+  parseError: boolean;
+}
+
+export function loadStore(): LoadResult {
   if (!existsSync(DATA_FILE)) {
-    return { tasks: [], nextId: 1 };
+    return { store: { tasks: [], nextId: 1 }, parseError: false };
   }
-  return JSON.parse(readFileSync(DATA_FILE, 'utf-8')) as TaskStore;
+  try {
+    const store = JSON.parse(readFileSync(DATA_FILE, 'utf-8')) as TaskStore;
+    return { store, parseError: false };
+  } catch {
+    return { store: { tasks: [], nextId: 1 }, parseError: true };
+  }
 }
 
 function saveStore(store: TaskStore): void {
@@ -20,7 +30,7 @@ function saveStore(store: TaskStore): void {
 }
 
 export function addTask(title: string, priority: string = 'medium'): Task {
-  const store = loadStore();
+  const { store } = loadStore();
   const task: Task = {
     id: store.nextId,
     title,
@@ -58,12 +68,13 @@ export function sortTasks(tasks: Task[], direction: 'asc' | 'desc' = 'desc'): Ta
   });
 }
 
-export function listTasks(direction: 'asc' | 'desc' = 'desc'): Task[] {
-  return sortTasks(loadStore().tasks, direction);
+export function listTasks(direction: 'asc' | 'desc' = 'desc'): { tasks: Task[]; parseError: boolean } {
+  const { store, parseError } = loadStore();
+  return { tasks: sortTasks(store.tasks, direction), parseError };
 }
 
 export function doneTask(id: number): Task | null {
-  const store = loadStore();
+  const { store } = loadStore();
   const task = store.tasks.find((t) => t.id === id);
   if (!task) return null;
   task.status = 'done';
@@ -73,7 +84,7 @@ export function doneTask(id: number): Task | null {
 }
 
 export function removeTask(id: number): boolean {
-  const store = loadStore();
+  const { store } = loadStore();
   const idx = store.tasks.findIndex((t) => t.id === id);
   if (idx === -1) return false;
   store.tasks.splice(idx, 1);

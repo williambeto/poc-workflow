@@ -27,9 +27,10 @@ program
     const direction = (['asc', 'desc'].includes(options.sort?.toLowerCase()))
       ? options.sort.toLowerCase()
       : 'desc';
-    const tasks = listTasks(direction);
+    const { tasks, parseError } = listTasks(direction);
     if (tasks.length === 0) {
       console.log('No tasks found.');
+      process.exit(parseError ? 1 : 0);
       return;
     }
     tasks.forEach((t) => {
