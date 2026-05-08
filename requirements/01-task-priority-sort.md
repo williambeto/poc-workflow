@@ -98,15 +98,17 @@ Given tasks with mixed priorities exist,
 when the user runs `tasks list --sort asc`,
 then the tasks are displayed in reverse order: low first, then medium, then high.
 
-### Scenario 6 — Empty title rejection
+### Scenario 6 — Empty data store
 
-Given the user runs `tasks add ""`,
-then the system displays an error and does not create the task.
+Given the task store is empty,
+when the user runs `tasks list`,
+then the output shows "No tasks found." and exits with code 0.
 
-### Scenario 7 — Invalid priority handling
+### Scenario 7 — Many tasks performance
 
-Given the user runs `tasks add "Test" --priority invalid`,
-then the system falls back to "medium" priority without error.
+Given 100 tasks with mixed priorities exist,
+when the user runs `tasks list`,
+then the output appears within 1 second.
 
 ## Business rules
 
