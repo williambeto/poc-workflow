@@ -34,8 +34,32 @@ export function addTask(title: string, priority: string = 'medium'): Task {
   return task;
 }
 
-export function listTasks(): Task[] {
-  return loadStore().tasks;
+const PRIORITY_WEIGHT: Record<string, number> = {
+  high: 3,
+  medium: 2,
+  low: 1,
+};
+
+const STATUS_WEIGHT: Record<string, number> = {
+  pending: 1,
+  done: 0,
+};
+
+export function sortTasks(tasks: Task[], direction: 'asc' | 'desc' = 'desc'): Task[] {
+  const mult = direction === 'asc' ? 1 : -1;
+  return [...tasks].sort((a, b) => {
+    const pa = PRIORITY_WEIGHT[a.priority] ?? 2;
+    const pb = PRIORITY_WEIGHT[b.priority] ?? 2;
+    if (pa !== pb) return (pa - pb) * mult;
+    const sa = STATUS_WEIGHT[a.status] ?? 1;
+    const sb = STATUS_WEIGHT[b.status] ?? 1;
+    if (sa !== sb) return (sa - sb) * mult;
+    return a.id - b.id; // tiebreaker: always ascending by id
+  });
+}
+
+export function listTasks(direction: 'asc' | 'desc' = 'desc'): Task[] {
+  return sortTasks(loadStore().tasks, direction);
 }
 
 export function doneTask(id: number): Task | null {
